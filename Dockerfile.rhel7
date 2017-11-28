@@ -1,0 +1,29 @@
+FROM registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:latest
+
+ENV KAFKA_VERSION=kafka_2.11-1.0.0
+
+RUN curl -sLO http://mirror.bit.edu.cn/apache/kafka/1.0.0/kafka_2.11-1.0.0.tgz
+
+RUN tar -xzf kafka_2.11-1.0.0.tgz
+
+RUN rm -rf kafka_2.11-1.0.0.tgz
+
+ENV KAFKA_HOME=/home/jboss/kafka_2.11-1.0.0
+ENV PATH ${PATH}:${KAFKA_HOME}/bin
+ENV BROKER_PORT=9092
+ENV KAFKA_LOGS_DIR=/home/jboss/kafka-logs
+
+WORKDIR $KAFKA_HOME
+
+USER root
+ADD run-kafka.sh /
+RUN chmod a+x /run-kafka.sh
+RUN mkdir -p $KAFKA_LOGS_DIR && \ 
+    chown jboss:root $KAFKA_LOGS_DIR && \
+    chmod -R 777 $KAFKA_LOGS_DIR
+USER jboss
+
+VOLUME ["/home/jboss/kafka_2.11-1.0.0/config", "/home/jboss/kafka-logs"]
+EXPOSE 9092
+
+CMD ["/run-kafka.sh"]
